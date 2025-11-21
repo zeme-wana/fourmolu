@@ -182,13 +182,6 @@ p_hsDoc' ::
   LHsDoc GhcPs ->
   R ()
 p_hsDoc' poHStyle hstyle needsNewline (L l str) = do
-  let isCommentSpan = \case
-        HaddockSpan _ _ -> True
-        CommentSpan _ -> True
-        _ -> False
-  goesAfterComment <- maybe False isCommentSpan <$> getSpanMark
-  -- Make sure the Haddock is separated by a newline from other comments.
-  when goesAfterComment newline
 
   let shouldEscapeCommentBraces =
         case poHStyle of
@@ -205,14 +198,11 @@ p_hsDoc' poHStyle hstyle needsNewline (L l str) = do
     else do
       txt . T.concat $
         [ "{-",
-          case (hstyle, poHStyle) of
-            (Pipe, HaddockMultiLineCompact) -> ""
-            _ -> " ",
           haddockDelim
         ]
       space
       sep multilineCommentNewline txtStripIndent docStringLines
-      newline
+      space
       txt "-}"
 
   when (Choice.isTrue needsNewline) newline
